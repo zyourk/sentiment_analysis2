@@ -14,6 +14,7 @@ The project is either using or intending to use:
   - Lyricsgenius (https://github.com/johnwmillr/LyricsGenius)
   - Spotify API
   - Sam Lowe's GO Emotions classification Model (https://huggingface.co/SamLowe/roberta-base-go_emotions)
+  - Tensorflow
   - Potential for more to come (language translation feature)
 
 ## Goals
