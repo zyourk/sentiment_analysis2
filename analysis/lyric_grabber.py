@@ -8,6 +8,7 @@ import os
 
 from lyricsgenius import Genius
 from dotenv import load_dotenv
+import analysis.translator as translator
 
 load_dotenv()
 
@@ -23,8 +24,17 @@ def get_lyrics():
     """
     artist = input("Enter Artist: ")
     song = input("Enter Song: ")
-    song = genius.search_song(artist=artist, title=song)
-    return song.lyrics
+    result = genius.search_song(artist=artist, title=song)
+    if result and translator.check_english(result.lyrics):
+        return result.lyrics
+    if result and not translator.check_english(result.lyrics):
+        english_search = genius.search_song(artist=artist, title=f"{song} english translation")
+        if english_search.lyrics:
+            return english_search.lyrics
+        else:
+            return translator.translate(result.lyrics)
+    else:
+        return "Sorry, I was unable to find that song."
 
 def get_lyrics_tester(artist, song):
     """
@@ -33,5 +43,14 @@ def get_lyrics_tester(artist, song):
     :param song: The pre-defined song.
     :return: song lyrics.
     """
-    song = genius.search_song(artist=artist, title=song)
-    return song.lyrics
+    result = genius.search_song(artist=artist, title=song)
+    if result and translator.check_english(result.lyrics):
+        return result.lyrics
+    if result and not translator.check_english(result.lyrics):
+        english_search = genius.search_song(artist=artist, title=f"{song} english translation")
+        if english_search.lyrics:
+            return english_search.lyrics
+        else:
+            return translator.translate(result.lyrics)
+    else:
+        return "Sorry, I was unable to find that song."
