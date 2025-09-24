@@ -7,7 +7,6 @@ class MyTestCase(unittest.TestCase):
         from analysis.sentiment_analyzer import analyze
 
         lyrics = get_lyrics_tester("radwimps", "nandemonaiya")
-        print(lyrics)
         result = analyze(lyrics)
         print(result)
 
