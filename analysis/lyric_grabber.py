@@ -36,7 +36,7 @@ def get_lyrics():
     else:
         return "Sorry, I was unable to find that song."
 
-def get_lyrics_tester(artist, song):
+def get_lyrics_tester(song, artist, debug=True):
     """
     Separate lyric grabbing function for testing get_lyrics().
     :param artist: The pre-defined artist.
@@ -48,9 +48,11 @@ def get_lyrics_tester(artist, song):
         return result.lyrics
     if result and not translator.check_english(result.lyrics):
         english_search = genius.search_song(artist=artist, title=f"{song} english translation")
-        if english_search.lyrics:
+        if english_search and english_search.lyrics:
             return english_search.lyrics
         else:
+            if debug:
+                print(translator.translate(result.lyrics))
             return translator.translate(result.lyrics)
     else:
         return "Sorry, I was unable to find that song."
