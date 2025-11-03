@@ -1,0 +1,16 @@
+# Core libraries
+googletrans==4.0.0-rc1      # latest non-async release
+lyricsgenius==3.7.0         # works for Python 3.11
+python-dotenv==1.0.0         # dotenv support
+
+# Hugging Face
+transformers==4.40.2         # latest stable tested with PyTorch 2.1+
+datasets==2.19.0             # needed for model training / evaluation
+accelerate==0.29.0           # multi-GPU / device handling
+
+# PyTorch
+torch==2.1.2
+torchvision==0.16.2
+torchaudio==2.1.2
+
+numpy==1.25.2
