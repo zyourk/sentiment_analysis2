@@ -5,6 +5,7 @@ author: Zack Yourkavitch
 """
 
 import os
+from concurrent.futures import ThreadPoolExecutor
 
 from lyricsgenius import Genius
 from dotenv import load_dotenv
@@ -14,6 +15,7 @@ load_dotenv()
 
 genius = Genius(os.getenv("GENIUS_TOKEN"))
 genius.verbose = False
+genius.timeout = 7
 genius.remove_section_headers = True
 
 
@@ -36,7 +38,7 @@ def get_lyrics():
     else:
         return "Sorry, I was unable to find that song."
 
-def get_lyrics_tester(song, artist, debug=True):
+def get_lyrics_tester(song, artist, debug=False):
     """
     Separate lyric grabbing function for testing get_lyrics().
     :param artist: The pre-defined artist.
@@ -56,3 +58,14 @@ def get_lyrics_tester(song, artist, debug=True):
             return translator.translate(result.lyrics)
     else:
         return "Sorry, I was unable to find that song."
+
+def get_batched_lyrics(songs):
+    results = {}
+    with ThreadPoolExecutor(max_workers=15) as executor:
+        for (song_artist, lyrics) in executor.map(fetch_lyrics, [(s["song"], s["artist"]) for s in songs]):
+            results[song_artist] = lyrics
+        return results
+
+def fetch_lyrics(song_tuple):
+    song, artist = song_tuple
+    return (song, artist), get_lyrics_tester(song, artist)

@@ -17,29 +17,23 @@ pipe = pipeline(
     model=model,
     tokenizer=tokenizer,
     top_k=None,
-    truncation=True
+    truncation=True,
+    device_map="auto"
 )
 
 
 def analyze(text):
-    predictions = pipe(text, top_k=None)
-
-    # Handle if predictions is a list of dicts
-    if isinstance(predictions, list):
-        if isinstance(predictions[0], dict):
-            preds = predictions
-        elif isinstance(predictions[0], list):  # Sometimes it's wrapped in another list
-            preds = predictions[0]
-        else:
-            raise TypeError(f"Unexpected prediction format: {type(predictions[0])}")
-    elif isinstance(predictions, dict):
-        preds = [predictions]
+    # Allow single text or list of texts
+    if isinstance(text, list):
+        predictions_batch = pipe(text, top_k=None, truncation=True)
+        results = []
+        for predictions in predictions_batch:
+            preds = [p for p in predictions if p["label"].lower() != "neutral"]
+            sorted_preds = sorted(preds, key=lambda x: x["score"], reverse=True)
+            results.append(sorted_preds[:5])
+        return results
     else:
-        raise TypeError(f"Unexpected predictions type: {type(predictions)}")
-
-    preds = [p for p in preds if p["label"].lower() != "neutral"]
-
-    # Now preds should be a list of {label, score} dicts
-    sorted_preds = sorted(preds, key=lambda x: x["score"], reverse=True)
-
-    return sorted_preds[:5]
+        predictions = pipe(text, top_k=None, truncation=True)
+        preds = [p for p in predictions if p["label"].lower() != "neutral"]
+        sorted_preds = sorted(preds, key=lambda x: x["score"], reverse=True)
+        return sorted_preds[:5]

@@ -83,3 +83,48 @@ def get_audio_features(song, artist):
             return None
     except Exception as e:
         print(f"Error: {e}")
+
+
+def get_audio_features_batch(songs):
+    """
+    songs: list of (song_name, artist_name) tuples
+    returns: dict mapping (song, artist) -> features dict or None
+    """
+    results = {}
+    song_ids = {}
+    print(songs)
+    for entry in songs:
+        song = entry["song"]
+        artist = entry["artist"]
+        try:
+            song_id = get_song_id(song, artist)
+            song_ids[song_id] = (song, artist)
+        except Exception as e:
+            print(f"Could not get ID for {song} - {artist}: {e}")
+            results[(song, artist)] = None
+
+    if not song_ids:
+        return results
+
+    ids_param = ",".join(song_ids.keys())
+    url = f"https://api.reccobeats.com/v1/audio-features?ids={ids_param}"
+    headers = {'Accept': 'application/json'}
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        json_resp = response.json()
+        content = json_resp.get("content", [])
+        for item in content:
+            sid = item["id"]
+            song_artist = song_ids.get(sid)
+            if song_artist:
+                results[song_artist] = {k: item[k] for k in item.keys() if k in AUDIO_FEATURE_KEYS}
+        for song_artist in song_ids.values():
+            if song_artist not in results:
+                results[song_artist] = None
+    except Exception as e:
+        print(f"Batch audio features request failed: {e}")
+        for song_artist in song_ids.values():
+            results[song_artist] = None
+
+    return results

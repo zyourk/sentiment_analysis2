@@ -31,7 +31,7 @@ def standardize_features(features):
     features['loudness'] = features['loudness'] / -60
     return features
 
-def get_sentiments(song, artist, debug=False):
+def get_sentiment_single(song, artist, debug=False):
     from analysis.sentiment_analyzer import analyze
     from analysis.audio_features import get_audio_features
     from analysis.lyric_grabber import get_lyrics_tester
@@ -55,3 +55,40 @@ def get_sentiments(song, artist, debug=False):
                 sentiment['score'] += emotiondict[label] * features[feature]
 
     return sentiments
+
+def get_sentiments(songs, debug=False):
+    from analysis.sentiment_analyzer import analyze
+    from analysis.audio_features import get_audio_features_batch
+    from analysis.lyric_grabber import get_batched_lyrics
+    import copy
+
+    lyric_map = get_batched_lyrics(songs)
+
+    batch_lyrics = [lyric_map[(s["song"], s["artist"])] for s in songs]
+
+    batch_sentiments = analyze(batch_lyrics)
+    batch_features = get_audio_features_batch(songs)
+
+    results = {}
+    for i, song in enumerate(songs):
+        sentiments = batch_sentiments[i]
+        features = batch_features.get((song["song"], song["artist"]))
+
+        if not features:
+            if debug:
+                print(f"no features for {song['song']} by {song['artist']}")
+            results[(song["song"], song["artist"])] = sentiments
+            continue
+
+        features = standardize_features(features)
+
+        # Apply sentiment adjustments
+        for feature, emotiondict in adjustments.items():
+            for sentiment in sentiments:
+                label = sentiment["label"]
+                if label in emotiondict:
+                    sentiment["score"] += emotiondict[label] * features[feature]
+
+        results[(song["song"], song["artist"])] = sentiments
+
+    return results
