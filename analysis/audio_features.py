@@ -92,7 +92,6 @@ def get_audio_features_batch(songs):
     """
     results = {}
     song_ids = {}
-    print(songs)
     for entry in songs:
         song = entry["song"]
         artist = entry["artist"]
@@ -100,7 +99,6 @@ def get_audio_features_batch(songs):
             song_id = get_song_id(song, artist)
             song_ids[song_id] = (song, artist)
         except Exception as e:
-            print(f"Could not get ID for {song} - {artist}: {e}")
             results[(song, artist)] = None
 
     if not song_ids:
@@ -113,15 +111,24 @@ def get_audio_features_batch(songs):
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         json_resp = response.json()
+
         content = json_resp.get("content", [])
         for item in content:
-            sid = item["id"]
-            song_artist = song_ids.get(sid)
+            href = item.get("href", "")
+            spotify_id = href.split("/")[-1] if href else None
+            if not spotify_id:
+                continue
+
+            song_artist = song_ids.get(spotify_id)
             if song_artist:
-                results[song_artist] = {k: item[k] for k in item.keys() if k in AUDIO_FEATURE_KEYS}
+                results[song_artist] = {
+                    k: item[k] for k in item.keys() if k in AUDIO_FEATURE_KEYS
+                }
+
         for song_artist in song_ids.values():
             if song_artist not in results:
                 results[song_artist] = None
+
     except Exception as e:
         print(f"Batch audio features request failed: {e}")
         for song_artist in song_ids.values():

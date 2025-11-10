@@ -26,7 +26,7 @@ def get_recs(artist, song):
     try:
         response.raise_for_status()
         data = response.json()
-        if not "similartracks" in data and not "track" in data["similartracks"]:
+        if (not "similartracks" in data) or (not data["similartracks"]["track"]):
             return {
                 "error": "No similar tracks found",
             }
@@ -45,6 +45,9 @@ def get_recs(artist, song):
 
 def return_recs(song, artist):
     recs = get_recs(song=song, artist=artist)
+    if 'error' in recs:
+        print("No recs")
+        return None
     formatted = []
     for rec in recs:
         formatted.append({

@@ -7,6 +7,10 @@ def get_best_rec(song, artist, debug=False):
     from analysis.sentiment_algorithm import get_sentiments, get_sentiment_single
     from analysis.audio_features import get_audio_features, get_audio_features_batch
 
+    candidates = return_recs(song=song, artist=artist)
+    if not candidates:
+        return None, None, None
+
     sentiments = get_sentiment_single(song=song, artist=artist)
     features = get_audio_features(song=song, artist=artist)
 
