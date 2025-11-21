@@ -7,6 +7,7 @@ def get_best_rec(song, artist, debug=False):
     from analysis.sentiment_algorithm import get_sentiments, get_sentiment_single
     from analysis.audio_features import get_audio_features, get_audio_features_batch
 
+    print("Getting candidate recommendations . . .")
     candidates = return_recs(song=song, artist=artist)
     if not candidates:
         return None, None, None
@@ -16,10 +17,12 @@ def get_best_rec(song, artist, debug=False):
 
     candidates = return_recs(song=song, artist=artist)
     candidates = [{"song": c["song"], "artist": c["artist"]} for c in candidates]
+    print("Analyzing song sentiments . . .")
     batched_cand_sents = get_sentiments(candidates)
     batched_cand_feats = get_audio_features_batch(candidates)
     candidate_map = []
     songs = []
+    print("Scoring recommendations . . .")
     for candidate in candidates:
         if debug:
             print(f"candidate: {candidate['song']} by {candidate['artist']}")
